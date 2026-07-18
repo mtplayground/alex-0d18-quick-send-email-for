@@ -10,7 +10,12 @@ export type SendEmailSuccessResponse = {
 
 export type SendEmailErrorResponse = {
   ok: false;
-  error: 'validation_error' | 'send_failed' | 'internal_error';
+  error:
+    | 'validation_error'
+    | 'email_unconfigured'
+    | 'rate_limited'
+    | 'send_failed'
+    | 'internal_error';
   fields?: Partial<Record<keyof SendEmailRequest, string>>;
 };
 
