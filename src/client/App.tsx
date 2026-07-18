@@ -5,8 +5,8 @@ import type { SendEmailRequest, SendEmailResponse } from '../shared/email';
 type FormFields = Partial<Record<keyof SendEmailRequest, string>>;
 type SendStatus = 'idle' | 'sending' | 'sent' | 'failed';
 
-const maxSubjectLength = 200;
-const maxMessageLength = 10000;
+export const maxSubjectLength = 200;
+export const maxMessageLength = 10000;
 
 const initialForm: SendEmailRequest = {
   recipient: '',
@@ -207,7 +207,7 @@ function getFeedback(status: SendStatus, message: string) {
   } as const;
 }
 
-async function sendEmail(payload: SendEmailRequest): Promise<SendEmailResponse> {
+export async function sendEmail(payload: SendEmailRequest): Promise<SendEmailResponse> {
   const response = await fetch('/api/send-email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -222,7 +222,7 @@ async function sendEmail(payload: SendEmailRequest): Promise<SendEmailResponse> 
   return (await response.json()) as SendEmailResponse;
 }
 
-function normalizeForm(form: SendEmailRequest): SendEmailRequest {
+export function normalizeForm(form: SendEmailRequest): SendEmailRequest {
   return {
     recipient: form.recipient.trim(),
     subject: form.subject.trim(),
@@ -230,7 +230,7 @@ function normalizeForm(form: SendEmailRequest): SendEmailRequest {
   };
 }
 
-function validateForm(form: SendEmailRequest): FormFields {
+export function validateForm(form: SendEmailRequest): FormFields {
   const fields: FormFields = {};
 
   if (!form.recipient) {
