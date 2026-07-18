@@ -162,7 +162,8 @@ h1 {
 
 .field-error,
 .field-count,
-.form-status {
+.feedback-title,
+.feedback-message {
   margin: 0;
   font-size: 0.9rem;
 }
@@ -184,18 +185,36 @@ h1 {
   white-space: nowrap;
 }
 
-.form-status {
+.form-feedback {
+  display: grid;
+  gap: 4px;
   border-radius: 6px;
+  border: 1px solid transparent;
   padding: 12px 14px;
+}
+
+.feedback-title {
   font-weight: 700;
 }
 
-.form-status-sent {
+.feedback-message {
+  color: inherit;
+}
+
+.form-feedback-pending {
+  border-color: #c9d2dc;
+  background: #f4f6f8;
+  color: #36485a;
+}
+
+.form-feedback-success {
+  border-color: #b8ddd4;
   background: #e8f4f1;
   color: #1f5f53;
 }
 
-.form-status-failed {
+.form-feedback-error {
+  border-color: #ffd1cd;
   background: #fff1f0;
   color: #9f241a;
 }

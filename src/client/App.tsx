@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import type { SendEmailRequest, SendEmailResponse } from '../shared/email';
 
 type FormFields = Partial<Record<keyof SendEmailRequest, string>>;
+type SendStatus = 'idle' | 'sending' | 'sent' | 'failed';
 
 const maxSubjectLength = 200;
 const maxMessageLength = 10000;
@@ -16,8 +17,9 @@ const initialForm: SendEmailRequest = {
 export function App() {
   const [form, setForm] = useState<SendEmailRequest>(initialForm);
   const [fields, setFields] = useState<FormFields>({});
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
+  const [status, setStatus] = useState<SendStatus>('idle');
   const [statusMessage, setStatusMessage] = useState('');
+  const feedback = getFeedback(status, statusMessage);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,7 +36,7 @@ export function App() {
     }
 
     setStatus('sending');
-    setStatusMessage('');
+    setStatusMessage('Sending your email now.');
 
     try {
       const result = await sendEmail(payload);
@@ -43,7 +45,7 @@ export function App() {
         setForm(initialForm);
         setFields({});
         setStatus('sent');
-        setStatusMessage('Email sent.');
+        setStatusMessage('Your message was accepted by the email service.');
         return;
       }
 
@@ -161,15 +163,48 @@ export function App() {
             {status === 'sending' ? 'Sending...' : 'Send email'}
           </button>
 
-          {statusMessage ? (
-            <p className={`form-status form-status-${status}`} role="status" aria-live="polite">
-              {statusMessage}
-            </p>
+          {feedback ? (
+            <div
+              className={`form-feedback form-feedback-${feedback.tone}`}
+              role={feedback.tone === 'error' ? 'alert' : 'status'}
+              aria-live={feedback.tone === 'error' ? 'assertive' : 'polite'}
+            >
+              <p className="feedback-title">{feedback.title}</p>
+              <p className="feedback-message">{feedback.message}</p>
+            </div>
           ) : null}
         </form>
       </section>
     </main>
   );
+}
+
+function getFeedback(status: SendStatus, message: string) {
+  if (status === 'idle') {
+    return null;
+  }
+
+  if (status === 'sending') {
+    return {
+      tone: 'pending',
+      title: 'Sending',
+      message
+    } as const;
+  }
+
+  if (status === 'sent') {
+    return {
+      tone: 'success',
+      title: 'Email sent',
+      message
+    } as const;
+  }
+
+  return {
+    tone: 'error',
+    title: 'Email not sent',
+    message
+  } as const;
 }
 
 async function sendEmail(payload: SendEmailRequest): Promise<SendEmailResponse> {
