@@ -5,10 +5,10 @@ import { fileURLToPath } from 'node:url';
 import { serverConfig } from './config.js';
 import type { SendEmailRequest, SendEmailResponse } from '../shared/email.js';
 
-const app = express();
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(currentFile);
 const clientDistDir = path.resolve(currentDir, '../client');
+export const app = express();
 
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
@@ -87,9 +87,11 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
 app.use(errorHandler);
 
-app.listen(serverConfig.port, serverConfig.host, () => {
-  console.log(`Server listening on http://${serverConfig.host}:${serverConfig.port}`);
-});
+if (process.argv[1] === currentFile) {
+  app.listen(serverConfig.port, serverConfig.host, () => {
+    console.log(`Server listening on http://${serverConfig.host}:${serverConfig.port}`);
+  });
+}
 
 function parseSendEmailRequest(body: unknown): SendEmailRequest {
   const record = isRecord(body) ? body : {};
