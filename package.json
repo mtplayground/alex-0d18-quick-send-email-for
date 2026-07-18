@@ -10,6 +10,7 @@
     "build:server": "tsc -p tsconfig.server.json",
     "start": "node dist/server/index.js",
     "test": "node --import tsx --test src/server/index.test.ts src/client/App.test.ts",
+    "test:e2e": "npm run build && node --test dist/e2e/send-flow.test.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
