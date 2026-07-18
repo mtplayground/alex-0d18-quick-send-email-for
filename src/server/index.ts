@@ -2,9 +2,9 @@ import express, { type ErrorRequestHandler } from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { serverConfig } from './config.js';
+
 const app = express();
-const port = Number.parseInt(process.env.PORT ?? '8080', 10);
-const host = '0.0.0.0';
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(currentFile);
 const clientDistDir = path.resolve(currentDir, '../client');
@@ -35,6 +35,6 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
 app.use(errorHandler);
 
-app.listen(port, host, () => {
-  console.log(`Server listening on http://${host}:${port}`);
+app.listen(serverConfig.port, serverConfig.host, () => {
+  console.log(`Server listening on http://${serverConfig.host}:${serverConfig.port}`);
 });
