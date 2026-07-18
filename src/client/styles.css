@@ -75,7 +75,12 @@ h1 {
 
 .send-form {
   display: grid;
-  gap: 10px;
+  gap: 16px;
+}
+
+.field-group {
+  display: grid;
+  gap: 8px;
 }
 
 .send-form label {
@@ -111,6 +116,18 @@ h1 {
   box-shadow: 0 0 0 3px rgba(47, 111, 98, 0.16);
 }
 
+.send-form input[aria-invalid="true"],
+.send-form textarea[aria-invalid="true"] {
+  border-color: #b42318;
+  background: #fffafa;
+}
+
+.send-form input[aria-invalid="true"]:focus,
+.send-form textarea[aria-invalid="true"]:focus {
+  border-color: #b42318;
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.14);
+}
+
 .send-form input::placeholder,
 .send-form textarea::placeholder {
   color: #8b98a5;
@@ -134,8 +151,39 @@ h1 {
   background: #2f6f62;
 }
 
+.send-form button:disabled {
+  background: #7b8794;
+  cursor: wait;
+}
+
 .send-form button:active {
   transform: translateY(1px);
+}
+
+.field-error,
+.form-status {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.field-error {
+  color: #b42318;
+}
+
+.form-status {
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-weight: 700;
+}
+
+.form-status-sent {
+  background: #e8f4f1;
+  color: #1f5f53;
+}
+
+.form-status-failed {
+  background: #fff1f0;
+  color: #9f241a;
 }
 
 @media (max-width: 560px) {
