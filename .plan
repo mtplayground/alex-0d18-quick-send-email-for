@@ -1,0 +1,73 @@
+Architecture plan for the minimal one-page send-email app
+
+Product scope
+- Build a minimal production-ready page where a user enters a recipient, subject, and message, then sends a real email with one click.
+- Keep the UI focused on the send workflow. Do not introduce unrelated account, template, inbox, or campaign features.
+
+Recommended stack and structure
+- Use a small Node/TypeScript app unless issue #1 chooses another stack explicitly.
+- Suggested layout:
+  - package.json, tsconfig.json, vite config, test config, playwright config at repo root.
+  - src/client/ for the one-page frontend.
+  - src/client/main.tsx for app bootstrap.
+  - src/client/App.tsx for page composition.
+  - src/client/components/SendEmailForm.tsx for the form UI.
+  - src/client/lib/validation.ts for shared client validation rules.
+  - src/client/lib/api.ts for the POST /api/send-email call.
+  - src/server/ for the backend.
+  - src/server/index.ts for server startup, static serving, trust-proxy setup, and route mounting.
+  - src/server/routes/sendEmail.ts for the send endpoint.
+  - src/server/email/provider.ts for a narrow email-provider adapter.
+  - src/shared/email.ts for request/response types and validation constants shared by tests and app code.
+  - tests/unit/ for backend and frontend unit tests.
+  - tests/e2e/ for Playwright send-flow coverage.
+
+Environment and configuration
+- Issue #2 should define .env.example with the minimum variables needed for real email delivery and deployment.
+- Expected variables:
+  - PORT
+  - SMTP_HOST
+  - SMTP_PORT
+  - SMTP_USER
+  - SMTP_PASS
+  - SMTP_FROM
+  - ALLOWED_CORS_ORIGIN
+- The server must derive public origin from X-Forwarded-Host and X-Forwarded-Proto when needed. If CORS or Origin checks are added, compare against ALLOWED_CORS_ORIGIN or the forwarded public host, not the rewritten internal Host header.
+
+API contract
+- POST /api/send-email
+- Request JSON:
+  - recipient: string
+  - subject: string
+  - message: string
+- Success response:
+  - 200 JSON { "ok": true }
+- Validation or send failure response:
+  - 400 JSON { "ok": false, "error": "validation_error", "fields": { ... } }
+  - 502 JSON { "ok": false, "error": "send_failed" }
+- Never return SMTP credentials, provider internals, or stack traces to the browser.
+
+Validation decisions
+- Apply the same basic constraints on client and server:
+  - recipient is required and must look like an email address.
+  - subject is required with a practical max length.
+  - message is required with a practical max length.
+- Client validation improves usability, but server validation remains authoritative.
+
+Issue dependency order
+- #1 creates the project scaffold, package scripts, baseline source directories, and placeholder app/server entry points.
+- #2 adds .env.example and typed config loading.
+- #3 establishes the ultra-minimal global styling foundation.
+- #4 implements POST /api/send-email and provider abstraction.
+- #5 builds the static form UI.
+- #6 wires client validation and API submission.
+- #7 adds inline pending, success, and error states.
+- #8 adds backend unit tests for validation, config, provider success, and provider failure.
+- #9 adds frontend unit tests for validation and submit behavior.
+- #10 adds end-to-end coverage for success and error paths.
+- #11 adds self-hosted deployment docs/config, production build command, runtime env documentation, and reverse-proxy notes.
+
+Testing and deployment notes
+- Unit tests should mock email delivery; only manual or environment-gated checks should hit a real SMTP provider.
+- E2E tests should use a test-mode provider or intercepted endpoint so they are deterministic.
+- Production serving should host the built frontend and API from the same origin where practical to avoid unnecessary CORS.
