@@ -4,6 +4,9 @@ import type { SendEmailRequest, SendEmailResponse } from '../shared/email';
 
 type FormFields = Partial<Record<keyof SendEmailRequest, string>>;
 
+const maxSubjectLength = 200;
+const maxMessageLength = 10000;
+
 const initialForm: SendEmailRequest = {
   recipient: '',
   subject: '',
@@ -19,7 +22,9 @@ export function App() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextFields = validateForm(form);
+    const payload = normalizeForm(form);
+    const nextFields = validateForm(payload);
+    setForm(payload);
     setFields(nextFields);
 
     if (Object.keys(nextFields).length > 0) {
@@ -32,12 +37,7 @@ export function App() {
     setStatusMessage('');
 
     try {
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
-      const result = (await response.json()) as SendEmailResponse;
+      const result = await sendEmail(payload);
 
       if (result.ok) {
         setForm(initialForm);
@@ -109,18 +109,25 @@ export function App() {
               id="subject"
               name="subject"
               type="text"
-              maxLength={200}
+              maxLength={maxSubjectLength}
               placeholder="A concise subject"
               value={form.subject}
               aria-invalid={Boolean(fields.subject)}
-              aria-describedby={fields.subject ? 'subject-error' : undefined}
+              aria-describedby={fields.subject ? 'subject-error subject-count' : 'subject-count'}
               onChange={(event) => updateField('subject', event.target.value)}
             />
-            {fields.subject ? (
-              <p className="field-error" id="subject-error">
-                {fields.subject}
+            <div className="field-meta">
+              {fields.subject ? (
+                <p className="field-error" id="subject-error">
+                  {fields.subject}
+                </p>
+              ) : (
+                <span aria-hidden="true" />
+              )}
+              <p className="field-count" id="subject-count">
+                {form.subject.length}/{maxSubjectLength}
               </p>
-            ) : null}
+            </div>
           </div>
 
           <div className="field-group">
@@ -129,18 +136,25 @@ export function App() {
               id="message"
               name="message"
               rows={8}
-              maxLength={10000}
+              maxLength={maxMessageLength}
               placeholder="Write your message here."
               value={form.message}
               aria-invalid={Boolean(fields.message)}
-              aria-describedby={fields.message ? 'message-error' : undefined}
+              aria-describedby={fields.message ? 'message-error message-count' : 'message-count'}
               onChange={(event) => updateField('message', event.target.value)}
             />
-            {fields.message ? (
-              <p className="field-error" id="message-error">
-                {fields.message}
+            <div className="field-meta">
+              {fields.message ? (
+                <p className="field-error" id="message-error">
+                  {fields.message}
+                </p>
+              ) : (
+                <span aria-hidden="true" />
+              )}
+              <p className="field-count" id="message-count">
+                {form.message.length}/{maxMessageLength}
               </p>
-            ) : null}
+            </div>
           </div>
 
           <button type="submit" disabled={status === 'sending'}>
@@ -158,21 +172,48 @@ export function App() {
   );
 }
 
+async function sendEmail(payload: SendEmailRequest): Promise<SendEmailResponse> {
+  const response = await fetch('/api/send-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const contentType = response.headers.get('Content-Type') ?? '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('Expected JSON response from send email API.');
+  }
+
+  return (await response.json()) as SendEmailResponse;
+}
+
+function normalizeForm(form: SendEmailRequest): SendEmailRequest {
+  return {
+    recipient: form.recipient.trim(),
+    subject: form.subject.trim(),
+    message: form.message.trim()
+  };
+}
+
 function validateForm(form: SendEmailRequest): FormFields {
   const fields: FormFields = {};
 
-  if (!form.recipient.trim()) {
+  if (!form.recipient) {
     fields.recipient = 'Recipient is required.';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.recipient.trim())) {
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.recipient)) {
     fields.recipient = 'Enter a valid email address.';
   }
 
-  if (!form.subject.trim()) {
+  if (!form.subject) {
     fields.subject = 'Subject is required.';
+  } else if (form.subject.length > maxSubjectLength) {
+    fields.subject = `Subject must be ${maxSubjectLength} characters or fewer.`;
   }
 
-  if (!form.message.trim()) {
+  if (!form.message) {
     fields.message = 'Message is required.';
+  } else if (form.message.length > maxMessageLength) {
+    fields.message = `Message must be ${maxMessageLength.toLocaleString()} characters or fewer.`;
   }
 
   return fields;

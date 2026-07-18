@@ -161,6 +161,7 @@ h1 {
 }
 
 .field-error,
+.field-count,
 .form-status {
   margin: 0;
   font-size: 0.9rem;
@@ -168,6 +169,19 @@ h1 {
 
 .field-error {
   color: #b42318;
+}
+
+.field-meta {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field-count {
+  margin-left: auto;
+  color: #64748b;
+  white-space: nowrap;
 }
 
 .form-status {
