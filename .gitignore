@@ -1,6 +1,11 @@
 target/
 dist/
 node_modules/
+.env
+.env.local
+.env.production
+.env.*.local
+!.env.example
 .gh_token
 .database_url
 .task_id
